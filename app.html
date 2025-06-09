@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Aris Bus - Dashboard with Login & Responsive Navbar</title>
+  <style>
+    :root {
+      --primary-color: #4b2e83;
+      --accent-color: #fca311;
+      --bg-color: #f7f7f7;
+      --card-bg: #ffffff;
+      --text-dark: #333;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar styles */
+    .navbar {
+      background: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar .brand {
+      font-size: 24px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 15px;
+    }
+
+    .navbar .nav-links button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .navbar .nav-links button:hover,
+    .navbar .nav-links button.active {
+      background: var(--accent-color);
+      color: #222;
+    }
+
+    .navbar .logout-btn {
+      background: var(--accent-color);
+      border: none;
+      color: #222;
+      font-weight: bold;
+      padding: 8px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .navbar .logout-btn:hover {
+      background: #d99300;
+    }
+
+    /* Hamburger Menu Button */
+    .navbar .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+    }
+
+    .navbar .hamburger span {
+      height: 3px;
+      width: 25px;
+      background: white;
+      margin: 4px 0;
+      border-radius: 2px;
+      transition: 0.3s;
+    }
+
+    /* Main Content */
+    .main {
+      padding: 30px 20px;
+      flex-grow: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .content-page {
+      display: none;
+    }
+
+    .active {
+      display: block;
+    }
+
+    .box {
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      color: var(--text-dark);
+    }
+
+    .box h3 {
+      margin-top: 0;
+      background: var(--accent-color);
+      color: white;
+      padding: 12px;
+      border-radius: 5px;
+      font-size: 20px;
+    }
+
+    input, select {
+      padding: 10px;
+      width: 100%;
+      margin: 10px 0;
+      font-size: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button.submit-btn {
+      padding: 10px 20px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button.submit-btn:hover {
+      background: #361d60;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    th {
+      background: #e0e0e0;
+    }
+
+    select#cityFilter {
+      width: auto;
+      margin-bottom: 15px;
+      padding: 8px;
+    }
+
+    /* Login page styling */
+    #loginPage {
+      margin: auto;
+      max-width: 400px;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      color: var(--text-dark);
+      width: 90%;
+      margin-top: 60px;
+    }
+
+    #loginPage h3 {
+      background: var(--primary-color);
+      padding: 15px;
+      border-radius: 8px;
+      color: white;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* Responsive styles */
+
+    /* Small screens */
+    @media (max-width: 768px) {
+      .navbar .nav-links {
+        display: none;
+        flex-direction: column;
+        background: var(--primary-color);
+        position: absolute;
+        top: 55px;
+        right: 0;
+        width: 200px;
+        border-radius: 0 0 0 10px;
+        box-shadow: -2px 2px 6px rgba(0,0,0,0.2);
+        z-index: 200;
+      }
+      .navbar .nav-links.show {
+        display: flex;
+      }
+      .navbar .hamburger {
+        display: flex;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Navbar (hidden before login) -->
+  <nav class="navbar" id="navbar" style="display:none;">
+    <div class="brand">ARIS BUS</div>
+    <div class="nav-links" id="navLinks">
+      <button onclick="showPage('dashboard')" id="btn-dashboard">Dashboard</button>
+      <button onclick="showPage('addbus')" id="btn-addbus">Add Bus</button>
+      <button onclick="showPage('viewbus')" id="btn-viewbus">View Timings</button>
+      <button onclick="showPage('about')" id="btn-about">About App</button>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </nav>
+
+  <div class="main" id="mainContent" style="display:none;">
+    <!-- Dashboard -->
+    <div id="dashboard" class="content-page active">
+      <div class="box">
+        <h3>Welcome to Aris Bus</h3>
+        <p id="welcomeMsg">This dashboard helps manage and view bus timings by city.</p>
+      </div>
+    </div>
+
+    <!-- Add Bus -->
+    <div id="addbus" class="content-page">
+      <div class="box">
+        <h3>Add Bus Timing</h3>
+        <form id="busForm">
+          <input type="text" id="busNo" placeholder="Bus Number" required />
+          <input type="text" id="fromStop" placeholder="From" required />
+          <input type="text" id="toStop" placeholder="To" required />
+          <input type="time" id="time" required />
+          <select id="city">
+            <option value="Madurai">Madurai</option>
+            <option value="Virudhunagar">Virudhunagar</option>
+            <option value="Sivakasi">Sivakasi</option>
+          </select>
+          <select id="language">
+            <option value="English">English</option>
+            <option value="Tamil">Tamil</option>
+          </select>
+          <button class="submit-btn" type="submit">Add Timing</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- View Bus -->
+    <div id="viewbus" class="content-page">
+      <div class="box">
+        <h3>Bus Timings (City-wise)</h3>
+
+        <label for="cityFilter"><strong>Filter by City:</strong></label>
+        <select id="cityFilter" onchange="filterCity()">
+          <option value="all">All</option>
+          <option value="Madurai">Madurai</option>
+          <option value="Virudhunagar">Virudhunagar</option>
+          <option value="Sivakasi">Sivakasi</option>
+        </select>
+
+        <br><br>
+
+        <table border="1" cellpadding="10" id="busTable">
+          <thead>
+            <tr>
+              <th>Bus No</th><th>From</th><th>To</th><th>Time</th><th>City</th><th>Language</th>
+            </tr>
+          </thead>
+          <tbody id="busTableBody">
+            <!-- JavaScript will populate this -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div id="about" class="content-page">
+      <div class="box">
+        <h3>About Aris Bus App</h3>
+        <p>This app helps students view and manage college bus timings in Tamil and English.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Page -->
+  <div id="loginPage">
+    <h3>Login to Aris Bus</h3>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button class="submit-btn" type="submit">Login</button>
+    </form>
+    <p id="loginError" style="color: red; display: none; margin-top:10px;"></p>
+  </div>
+
+  <script>
+    // Hardcoded user data (for demo)
+    const users = [
+      { username: 'admin', password: '1234', fullname: 'Admin User' },
+      { username: 'arivu', password: 'pass', fullname: 'Arivu Vignesh Kumar' }
+    ];
+
+    // Current logged in user (null if none)
+    let currentUser = null;
+
+    const loginPage = document.getElementById('loginPage');
+    const navbar = document.getElementById('navbar');
+    const mainContent = document.getElementById('mainContent');
+    const loginError = document.getElementById('loginError');
+    const navLinks = document.getElementById('navLinks');
+    const hamburger = document.getElementById('hamburger');
+
+    // Bus Data
+    let busData = [
+      { no: "101", from: "KLU", to: "Madurai", time: "10:00", city: "Madurai", lang: "English" },
+      { no: "102", from: "KLU", to: "Virudhunagar", time: "11:00", city: "Virudhunagar", lang: "Tamil" },
+      { no: "103", from: "KLU", to: "Sivakasi", time: "09:00", city: "Sivakasi", lang: "English" },
+      { no: "104", from: "KLU", to: "Madurai", time: "14:00", city: "Madurai", lang: "Tamil" }
+    ];
+
+    // Show page function
+    function showPage(id) {
+      document.querySelectorAll('.content-page').forEach(page => {
+        page.classList.remove('active');
+      });
+      document.getElementById(id).classList.add('active');
+      highlightNavButton(id);
+      if (id === 'viewbus') displayBuses();
+      closeMenu();
+    }
+
+    // Highlight the active nav button
+    function highlightNavButton(id) {
+      document.querySelectorAll('.nav-links button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      const btn = document.getElementById('btn-' + id);
+      if (btn) btn.classList.add('active');
+    }
+
+    // Display bus timings
+    function displayBuses(filteredCity = "all") {
+      const tableBody = document.getElementById("busTableBody");
+      tableBody.innerHTML = "";
+      const filtered = filteredCity === "all" ? busData : busData.filter(bus => bus.city === filteredCity);
+      filtered.forEach(bus => {
+        const row = `<tr>
+          <td>${bus.no}</td>
+          <td>${bus.from}</td>
+          <td>${bus.to}</td>
+          <td>${bus.time}</td>
+          <td>${bus.city}</td>
+          <td>${bus.lang}</td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      });
+    }
+
+    // Filter buses by city
+    function filterCity() {
+      const selectedCity = document.getElementById("cityFilter").value;
+      displayBuses(selectedCity);
+    }
+
+    // Handle adding new bus timing
+    document.getElementById("busForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const newBus = {
+        no: document.getElementById("busNo").value.trim(),
+        from: document.getElementById("fromStop").value.trim(),
+        to: document.getElementById("toStop").value.trim(),
+        time: document.getElementById("time").value,
+        city: document.getElementById("city").value,
+        lang: document.getElementById("language").value
+      };
+      busData.push(newBus);
+      alert("Bus Timing Added!");
+      this.reset();
+    });
+
+    // Handle login form submit
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Find user
+      const user = users.find(u => u.username === username && u.password === password);
+      if (user) {
+        currentUser = user;
+        loginSuccess();
+      } else {
+        loginError.style.display = 'block';
+        loginError.textContent = 'Invalid username or password.';
+      }
+    });
+
+    // On successful login
+    function loginSuccess() {
+      loginError.style.display = 'none';
+      loginPage.style.display = 'none';
+      navbar.style.display = 'flex';
+      mainContent.style.display = 'block';
+      showPage('dashboard');
+
+      // Show welcome message with user info
+      const welcomeMsg = document.getElementById('welcomeMsg');
+      welcomeMsg.textContent = `Hello, ${currentUser.fullname}! This dashboard helps manage and view bus timings by city.`;
+    }
+
+    // Logout function
+    function logout() {
+      currentUser = null;
+      navbar.style.display = 'none';
+      mainContent.style.display = 'none';
+      loginPage.style.display = 'block';
+      document.getElementById('loginForm').reset();
+      closeMenu();
+    }
+
+    // Toggle hamburger menu on small screens
+    function toggleMenu() {
+      navLinks.classList.toggle('show');
+      hamburger.classList.toggle('open');
+    }
+
+    // Close menu (for small screen) after clicking a nav link
+    function closeMenu() {
+      if (navLinks.classList.contains('show')) {
+        navLinks.classList.remove('show');
+        hamburger.classList.remove('open');
+      }
+    }
+
+    // Start with login page visible only
+    logout();
+
+    // --- Added: Keyboard navigation for left/right arrow keys ---
+    const pagesOrder = ['dashboard', 'addbus', 'viewbus', 'about'];
+
+    document.addEventListener('keydown', function(e) {
+      if (!currentUser) return;  // only if logged in
+
+      const activePage = document.querySelector('.content-page.active');
+      if (!activePage) return;
+
+      const currentIndex = pagesOrder.indexOf(activePage.id);
+      if (currentIndex === -1) return;
+
+      if (e.key === 'ArrowRight') {
+        // Next page
+        let nextIndex = currentIndex + 1;
+        if (nextIndex >= pagesOrder.length) nextIndex = 0; // loop to first
+        showPage(pagesOrder[nextIndex]);
+      } else if (e.key === 'ArrowLeft') {
+        // Previous page
+        let prevIndex = currentIndex - 1;
+        if (prevIndex < 0) prevIndex = pagesOrder.length - 1; // loop to last
+        showPage(pagesOrder[prevIndex]);
+      }
+    });
+  </script>
+
+</body>
+</html>
