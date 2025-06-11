@@ -1,0 +1,118 @@
+<!-- public/add-timing.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add Bus Timing</title>
+  <link rel="stylesheet" href="./css/style.css">
+
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    label { display: block; margin-top: 10px; }
+    select, input, button { margin-top: 5px; padding: 5px; width: 200px; }
+  </style>
+</head>
+<body>
+  <h2>Add Bus Timing</h2>
+
+  <label>District:</label>
+  <select id="district" onchange="loadTaluks()">
+    <option value="">--Select District--</option>
+  </select>
+
+  <label>Taluk:</label>
+  <select id="taluk" onchange="loadVillages()">
+    <option value="">--Select Taluk--</option>
+  </select>
+
+  <label>Village:</label>
+  <select id="village">
+    <option value="">--Select Village--</option>
+  </select>
+
+  <label>From:</label>
+  <input type="text" id="from" placeholder="Start Place">
+
+  <label>To:</label>
+  <input type="text" id="to" placeholder="End Place">
+
+  <label>Bus Time:</label>
+  <input type="text" id="time" placeholder="Ex: 5:30 PM">
+
+  <button onclick="submitTiming()">Submit</button>
+
+  <script type="module">
+    import { auth, db } from './firebase.js';
+    import { addDoc, collection } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+    const tree = {
+      "Virudhunagar": {
+        "Rajapalayam": ["Muhavur", "Chatrapatti"],
+        "Sivakasi": ["Thiruthangal", "Vembakottai"]
+      },
+      "Madurai": {
+        "Thirumangalam": ["Peraiyur", "Kalligudi"],
+        "Melur": ["Keelavalavu", "Kottampatti"]
+      }
+    };
+
+    const districtSelect = document.getElementById("district");
+    const talukSelect = document.getElementById("taluk");
+    const villageSelect = document.getElementById("village");
+
+    // Load Districts
+    for (let dist in tree) {
+      districtSelect.innerHTML += `<option value="${dist}">${dist}</option>`;
+    }
+
+    window.loadTaluks = function () {
+      const dist = districtSelect.value;
+      talukSelect.innerHTML = `<option value="">--Select Taluk--</option>`;
+      villageSelect.innerHTML = `<option value="">--Select Village--</option>`;
+      if (tree[dist]) {
+        for (let taluk in tree[dist]) {
+          talukSelect.innerHTML += `<option value="${taluk}">${taluk}</option>`;
+        }
+      }
+    };
+
+    window.loadVillages = function () {
+      const dist = districtSelect.value;
+      const taluk = talukSelect.value;
+      villageSelect.innerHTML = `<option value="">--Select Village--</option>`;
+      if (tree[dist] && tree[dist][taluk]) {
+        for (let v of tree[dist][taluk]) {
+          villageSelect.innerHTML += `<option value="${v}">${v}</option>`;
+        }
+      }
+    };
+
+    window.submitTiming = async function () {
+      const from = document.getElementById("from").value;
+      const to = document.getElementById("to").value;
+      const time = document.getElementById("time").value;
+      const district = districtSelect.value;
+      const taluk = talukSelect.value;
+      const village = villageSelect.value;
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          await addDoc(collection(db, "busTimings"), {
+            uid: user.uid,
+            from,
+            to,
+            time,
+            district,
+            taluk,
+            village,
+            createdAt: new Date()
+          });
+          alert("✅ Timing Added!");
+        } else {
+          alert("⚠️ Please login again.");
+        }
+      });
+    };
+  </script>
+</body>
+</html>

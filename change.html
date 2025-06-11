@@ -1,0 +1,57 @@
+<!-- public/change-password.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Change Password</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <h2>Change Password</h2>
+
+  <form id="changeForm">
+    <label for="currentPassword">Current Password:</label>
+    <input type="password" id="currentPassword" required />
+
+    <label for="newPassword">New Password:</label>
+    <input type="password" id="newPassword" required />
+
+    <button type="submit">Update Password</button>
+  </form>
+
+  <p id="status" style="color: green; margin-top: 10px;"></p>
+
+  <script type="module">
+    import { auth } from './firebase.js';
+    import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const form = document.getElementById('changeForm');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const user = auth.currentUser;
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+
+      if (!user) {
+        status.style.color = 'red';
+        status.textContent = "No user is currently signed in.";
+        return;
+      }
+
+      const cred = EmailAuthProvider.credential(user.email, currentPassword);
+
+      try {
+        await reauthenticateWithCredential(user, cred);
+        await updatePassword(user, newPassword);
+        status.style.color = 'green';
+        status.textContent = "Password updated successfully!";
+        form.reset();
+      } catch (error) {
+        status.style.color = 'red';
+        status.textContent = "Error: " + error.message;
+      }
+    });
+  </script>
+</body>
+</html>

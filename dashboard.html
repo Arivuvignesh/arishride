@@ -1,0 +1,92 @@
+<!-- public/dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard - Arish Ride</title>
+  <link rel="stylesheet" href="./css/style.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+    }
+    .sidebar {
+      width: 250px;
+      background-color: #1e2a36;
+      color: white;
+      height: 100vh;
+      padding-top: 20px;
+      position: fixed;
+    }
+    .sidebar a {
+      padding: 15px 25px;
+      display: block;
+      text-decoration: none;
+      color: white;
+    }
+    .sidebar a:hover {
+      background-color: #394857;
+    }
+    .main {
+      margin-left: 250px;
+      padding: 20px;
+      flex-grow: 1;
+    }
+    .user-info {
+      margin-bottom: 20px;
+      background: #f1f1f1;
+      padding: 15px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2 style="text-align:center;">Arish Ride</h2>
+    <a href="#">Dashboard</a>
+    <a href="#">Add Bus Timing</a>
+    <a href="#">View Timings</a>
+    <a href="#">Change Password</a>
+    <a href="#">About This App</a>
+    <a href="index.html">Logout</a>
+  </div>
+
+  <div class="main">
+    <div class="user-info" id="userInfo">
+      <h3>Welcome!</h3>
+      <p>Name: <span id="username">Loading...</span></p>
+      <p>Address: <span id="address">Loading...</span></p>
+    </div>
+
+    <h2>Dashboard Content Here</h2>
+    <!-- Later: Add Bus Time Form, View List -->
+  </div>
+
+  <script type="module">
+    import { auth, db } from './firebase.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const usernameEl = document.getElementById('username');
+    const addressEl = document.getElementById('address');
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          usernameEl.textContent = data.name;
+          addressEl.textContent = data.address;
+        } else {
+          usernameEl.textContent = "Unknown";
+          addressEl.textContent = "Unknown";
+        }
+      } else {
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+</body>
+</html>

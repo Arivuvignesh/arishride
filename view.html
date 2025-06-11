@@ -1,0 +1,145 @@
+<!-- public/view.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>View Bus Timings</title>
+  <link rel="stylesheet" href="./css/style.css">
+
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    label { display: block; margin-top: 10px; }
+    select { margin-top: 5px; padding: 5px; width: 200px; }
+    table { margin-top: 20px; border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #aaa; padding: 10px; text-align: center; }
+    th { background: #333; color: white; }
+  </style>
+</head>
+<body>
+  <h2>View All Bus Timings</h2>
+
+  <label>District:</label>
+  <select id="district" onchange="loadTaluks()">
+    <option value="">--Select District--</option>
+  </select>
+
+  <label>Taluk:</label>
+  <select id="taluk" onchange="loadVillages()">
+    <option value="">--Select Taluk--</option>
+  </select>
+
+  <label>Village:</label>
+  <select id="village" onchange="filterTimings()">
+    <option value="">--Select Village--</option>
+  </select>
+
+  <table>
+    <thead>
+      <tr>
+        <th>From</th>
+        <th>To</th>
+        <th>Time</th>
+        <th>District</th>
+        <th>Taluk</th>
+        <th>Village</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <!-- Timings will be inserted here -->
+    </tbody>
+  </table>
+
+  <script type="module">
+    import { db } from './firebase.js';
+    import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const tree = {
+      "Virudhunagar": {
+        "Rajapalayam": ["Muhavur", "Chatrapatti"],
+        "Sivakasi": ["Thiruthangal", "Vembakottai"]
+      },
+      "Madurai": {
+        "Thirumangalam": ["Peraiyur", "Kalligudi"],
+        "Melur": ["Keelavalavu", "Kottampatti"]
+      }
+    };
+
+    const districtSelect = document.getElementById("district");
+    const talukSelect = document.getElementById("taluk");
+    const villageSelect = document.getElementById("village");
+    const tableBody = document.getElementById("tableBody");
+
+    let allData = [];
+
+    // Populate Districts
+    for (let dist in tree) {
+      districtSelect.innerHTML += `<option value="${dist}">${dist}</option>`;
+    }
+
+    window.loadTaluks = function () {
+      const dist = districtSelect.value;
+      talukSelect.innerHTML = `<option value="">--Select Taluk--</option>`;
+      villageSelect.innerHTML = `<option value="">--Select Village--</option>`;
+      if (tree[dist]) {
+        for (let taluk in tree[dist]) {
+          talukSelect.innerHTML += `<option value="${taluk}">${taluk}</option>`;
+        }
+      }
+      filterTimings(); // reset filter
+    };
+
+    window.loadVillages = function () {
+      const dist = districtSelect.value;
+      const taluk = talukSelect.value;
+      villageSelect.innerHTML = `<option value="">--Select Village--</option>`;
+      if (tree[dist] && tree[dist][taluk]) {
+        for (let v of tree[dist][taluk]) {
+          villageSelect.innerHTML += `<option value="${v}">${v}</option>`;
+        }
+      }
+      filterTimings();
+    };
+
+    function renderTable(data) {
+      tableBody.innerHTML = "";
+      if (data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="6">No data found</td></tr>`;
+        return;
+      }
+
+      for (let doc of data) {
+        const row = `<tr>
+          <td>${doc.from}</td>
+          <td>${doc.to}</td>
+          <td>${doc.time}</td>
+          <td>${doc.district}</td>
+          <td>${doc.taluk}</td>
+          <td>${doc.village}</td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      }
+    }
+
+    async function loadAllData() {
+      const querySnapshot = await getDocs(collection(db, "busTimings"));
+      allData = querySnapshot.docs.map(doc => doc.data());
+      renderTable(allData);
+    }
+
+    window.filterTimings = function () {
+      const d = districtSelect.value;
+      const t = talukSelect.value;
+      const v = villageSelect.value;
+
+      const filtered = allData.filter(item =>
+        (!d || item.district === d) &&
+        (!t || item.taluk === t) &&
+        (!v || item.village === v)
+      );
+
+      renderTable(filtered);
+    };
+
+    loadAllData();
+  </script>
+</body>
+</html>
